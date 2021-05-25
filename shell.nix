@@ -4,8 +4,12 @@ with pkgs;
 
 mkShell {
   buildInputs = [
-    # Add dependencies here.
+    # Build toolchain.
     rustup
     cargo-embed
+
+    # Debugging tools.
+    openocd
+    gcc-arm-embedded
   ];
 }
