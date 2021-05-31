@@ -73,12 +73,14 @@ impl Router<RX_MAX_LEN> for CustomRouter {
 
     // Customise the firmware version & description.
 
+    // TODO: Use a macro instead to generate this.
     fn firmware_version(&self) -> &str {
         concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_VERSION"))
     }
 
+    // TODO: Use a macro instead to generate this.
     fn description(&self) -> &str {
-        "Example ERCP firmware"
+        env!("CARGO_PKG_DESCRIPTION")
     }
 }
 

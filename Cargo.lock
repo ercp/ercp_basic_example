@@ -148,7 +148,7 @@ dependencies = [
 [[package]]
 name = "ercp_basic"
 version = "0.1.0"
-source = "git+https://github.com/ercp/ercp_basic.rs.git?branch=develop#3edaf08b5159f31006814899d9f5c7867dac30e7"
+source = "git+https://github.com/ercp/ercp_basic.rs.git?branch=develop#73af75251e8f126731567c55402c7c730c590db1"
 dependencies = [
  "embedded-crc-macros",
  "embedded-hal",
