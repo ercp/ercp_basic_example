@@ -93,16 +93,19 @@ impl CustomRouter {
     // Command handlers are here.
 
     fn led_on(&mut self, led: &mut Led) -> Option<Command> {
+        defmt::info!("Led on");
         led.set_high().ok();
         Some(ack!())
     }
 
     fn led_off(&mut self, led: &mut Led) -> Option<Command> {
+        defmt::info!("Led off");
         led.set_low().ok();
         Some(ack!())
     }
 
     fn counter_get(&mut self, counter: u8) -> Option<Command> {
+        defmt::info!("Counter = {}", counter);
         self.buffer[0] = counter;
         let reply =
             Command::new(COUNTER_GET_REPLY, &self.buffer[0..1]).unwrap();
@@ -115,9 +118,11 @@ impl CustomRouter {
         counter: &mut u8,
     ) -> Option<Command> {
         if command.length() == 1 {
+            defmt::info!("Setting the counter to {}", command.value()[0]);
             *counter = command.value()[0];
             Some(ack!())
         } else {
+            defmt::warn!("Invalid arguments");
             Some(nack!(nack_reason::INVALID_ARGUMENTS))
         }
     }
@@ -125,22 +130,30 @@ impl CustomRouter {
     fn counter_inc(&mut self, counter: &mut u8) -> Option<Command> {
         match counter.checked_add(1) {
             Some(value) => {
+                defmt::info!("Increasing the counter to {}", value);
                 *counter = value;
                 Some(ack!())
             }
 
-            None => Some(nack!(OUT_OF_BOUNDS)),
+            None => {
+                defmt::warn!("Cannot increase the counter above 255");
+                Some(nack!(OUT_OF_BOUNDS))
+            }
         }
     }
 
     fn counter_dec(&mut self, counter: &mut u8) -> Option<Command> {
         match counter.checked_sub(1) {
             Some(value) => {
+                defmt::info!("Decreasing the counter to {}", value);
                 *counter = value;
                 Some(ack!())
             }
 
-            None => Some(nack!(OUT_OF_BOUNDS)),
+            None => {
+                defmt::warn!("Cannot decrease the counter below 0");
+                Some(nack!(OUT_OF_BOUNDS))
+            }
         }
     }
 }
@@ -224,17 +237,20 @@ const APP: () = {
 
     #[task(binds = USART1, resources = [ercp], spawn = [ercp_process])]
     fn usart1(cx: usart1::Context) {
+        defmt::trace!("Receiving data on UART");
         let ercp = cx.resources.ercp;
 
         ercp.handle_data();
 
         if ercp.complete_frame_received() {
+            defmt::trace!("Complete frame received!");
             cx.spawn.ercp_process().ok();
         }
     }
 
     #[task(resources = [ercp, driveable_resources])]
     fn ercp_process(cx: ercp_process::Context) {
+        defmt::debug!("Processing an ERCP frame...");
         cx.resources.ercp.process(cx.resources.driveable_resources);
     }
 
