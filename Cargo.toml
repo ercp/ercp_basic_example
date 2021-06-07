@@ -7,14 +7,24 @@ edition = "2018"
 
 [dependencies]
 cortex-m-rtic = "0.5.6"
-panic-rtt-target = { version = "0.1.2", features = ["cortex-m"] }
-rtt-target = { version = "0.3.1", features = ["cortex-m"] }
+defmt = "0.2.2"
+defmt-rtt = "0.2.0"
+panic-probe = { version = "0.2.0", features = ["print-defmt"] }
 stm32l4xx-hal = { version = "0.6.0", features = ["stm32l4x6", "rt" ] }
 
 [dependencies.ercp_basic]
 git = "https://github.com/ercp/ercp_basic.rs.git"
 branch = "develop"
 features = ["embedded"]
+
+[features]
+default = ["defmt-default"]
+defmt-default = []
+defmt-trace = []
+defmt-debug = []
+defmt-info = []
+defmt-warn = []
+defmt-error = []
 
 # For `cargo fix` to work.
 [[bin]]

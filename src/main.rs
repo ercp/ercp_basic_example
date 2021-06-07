@@ -1,7 +1,8 @@
 #![no_std]
 #![no_main]
 
-use panic_rtt_target as _;
+use defmt_rtt as _;
+use panic_probe as _;
 
 use rtic::app;
 
@@ -16,7 +17,6 @@ use ercp_basic::{
     ack, adapter::SerialAdapter, command::nack_reason, nack, Command,
     ErcpBasic, Router,
 };
-use rtt_target::{rprintln, rtt_init_print};
 
 /// The board LED.
 type Led = PA5<Output<PushPull>>;
@@ -169,8 +169,7 @@ const APP: () = {
 
     #[init]
     fn init(cx: init::Context) -> init::LateResources {
-        rtt_init_print!();
-        rprintln!("Firmware starting...");
+        defmt::info!("Firmware starting...");
 
         let _cp = cx.core;
         let dp = cx.device;
@@ -207,7 +206,7 @@ const APP: () = {
         let router = CustomRouter::new();
         let mut ercp = ErcpBasic::new(adapter, router);
 
-        rprintln!("Firmware initialised!");
+        defmt::info!("Firmware initialised!");
         ercp.log("Firmware initialised!").ok();
 
         init::LateResources {

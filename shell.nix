@@ -6,7 +6,6 @@ mkShell {
   buildInputs = [
     # Build toolchain.
     rustup
-    cargo-embed
 
     # Debugging tools.
     openocd
