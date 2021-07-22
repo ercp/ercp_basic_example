@@ -15,7 +15,7 @@ stm32l4xx-hal = { version = "0.6.0", features = ["stm32l4x6", "rt" ] }
 [dependencies.ercp_basic]
 git = "https://github.com/ercp/ercp_basic.rs.git"
 branch = "develop"
-features = ["embedded"]
+features = ["serial"]
 
 [features]
 default = [
