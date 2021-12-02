@@ -57,7 +57,7 @@ impl Router<RX_MAX_LEN> for CustomRouter {
         command: Command,
         cx: &mut Self::Context,
     ) -> Option<Command> {
-        match command.command() {
+        match command.code() {
             // Override the route method to add our routes.
             LED_ON => self.led_on(&mut cx.led),
             LED_OFF => self.led_off(&mut cx.led),

@@ -243,7 +243,7 @@ dependencies = [
 [[package]]
 name = "ercp_basic"
 version = "0.1.0"
-source = "git+https://github.com/ercp/ercp_basic.rs.git?branch=develop#f9a81e49284a0e7b97379392d1ecc9274a43bc65"
+source = "git+https://github.com/ercp/ercp_basic.rs.git?branch=develop#4898f5f9096971d0bfbb826e9bf5ea86c6470d48"
 dependencies = [
  "embedded-crc-macros",
  "embedded-hal",
@@ -267,7 +267,7 @@ dependencies = [
 [[package]]
 name = "ercp_basic_macros"
 version = "0.1.0"
-source = "git+https://github.com/ercp/ercp_basic.rs.git?branch=develop#f9a81e49284a0e7b97379392d1ecc9274a43bc65"
+source = "git+https://github.com/ercp/ercp_basic.rs.git?branch=develop#4898f5f9096971d0bfbb826e9bf5ea86c6470d48"
 dependencies = [
  "proc-macro2",
  "quote",
