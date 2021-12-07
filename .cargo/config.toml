@@ -1,5 +1,5 @@
 [target.'cfg(all(target_arch = "arm", target_os = "none"))']
-runner = "probe-run --chip STM32L476RGTx"
+runner = "probe-run --chip LPC55S69JBD100"
 rustflags = [
     "-C", "linker=flip-link",
     "-C", "link-arg=-Tlink.x",
@@ -7,4 +7,4 @@ rustflags = [
 ]
 
 [build]
-target = "thumbv7em-none-eabihf" # Cortex-M4+ / Cortex-M7+
+target = "thumbv8m.main-none-eabihf" # Cortex-M33
