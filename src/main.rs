@@ -173,15 +173,24 @@ const COUNTER_DEC: u8 = 0x34;
 
 const OUT_OF_BOUNDS: u8 = 0xFF;
 
-#[app(device = stm32l4xx_hal::pac, peripherals = true)]
-const APP: () = {
-    struct Resources {
+#[app(device = stm32l4xx_hal::pac, dispatchers = [TIM2])]
+mod app {
+    use super::*;
+
+    #[shared]
+    struct SharedResources {
         ercp: ErcpBasic<SerialAdapter<Uart>, CustomRouter, RX_MAX_LEN>,
+    }
+
+    #[local]
+    struct LocalResources {
         driveable_resources: DriveableResources,
     }
 
     #[init]
-    fn init(cx: init::Context) -> init::LateResources {
+    fn init(
+        cx: init::Context,
+    ) -> (SharedResources, LocalResources, init::Monotonics) {
         defmt::info!("Firmware starting...");
 
         let _cp = cx.core;
@@ -222,10 +231,13 @@ const APP: () = {
         defmt::info!("Firmware initialised!");
         ercp.log("Firmware initialised!").ok();
 
-        init::LateResources {
-            ercp,
-            driveable_resources: DriveableResources { led, counter: 0 },
-        }
+        (
+            SharedResources { ercp },
+            LocalResources {
+                driveable_resources: DriveableResources { led, counter: 0 },
+            },
+            init::Monotonics(),
+        )
     }
 
     #[idle]
@@ -235,29 +247,27 @@ const APP: () = {
         }
     }
 
-    #[task(binds = USART1, resources = [ercp], spawn = [ercp_process])]
-    fn usart1(cx: usart1::Context) {
+    #[task(binds = USART1, shared = [ercp])]
+    fn usart1(mut cx: usart1::Context) {
         defmt::trace!("Receiving data on UART");
-        let ercp = cx.resources.ercp;
 
-        ercp.handle_data().ok();
+        cx.shared.ercp.lock(|ercp| {
+            ercp.handle_data().ok();
 
-        if ercp.complete_frame_received() {
-            defmt::trace!("Complete frame received!");
-            cx.spawn.ercp_process().ok();
-        }
+            if ercp.complete_frame_received() {
+                defmt::trace!("Complete frame received!");
+                ercp_process::spawn().ok();
+            }
+        });
     }
 
-    #[task(resources = [ercp, driveable_resources])]
-    fn ercp_process(cx: ercp_process::Context) {
+    #[task(shared = [ercp], local = [driveable_resources])]
+    fn ercp_process(mut cx: ercp_process::Context) {
         defmt::debug!("Processing an ERCP frame...");
-        cx.resources
-            .ercp
-            .process(cx.resources.driveable_resources)
-            .ok();
-    }
 
-    extern "C" {
-        fn TIM2();
+        let driveable_resources = cx.local.driveable_resources;
+        cx.shared
+            .ercp
+            .lock(|ercp| ercp.process(driveable_resources).ok());
     }
-};
+}
