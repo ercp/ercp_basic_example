@@ -1,9 +1,6 @@
 #![no_std]
 
-use stm32l4xx_hal::{
-    gpio::{Output, PushPull, PA5},
-    prelude::*,
-};
+use stm32l4xx_hal::gpio::{Output, PushPull, PA5};
 
 use ercp_basic::{ack, command::nack_reason, nack, Command, Router};
 
@@ -80,13 +77,13 @@ impl CustomRouter {
 
     fn led_on(&mut self, led: &mut Led) -> Option<Command> {
         defmt::info!("Led on");
-        led.set_high().ok();
+        led.set_high();
         Some(ack!())
     }
 
     fn led_off(&mut self, led: &mut Led) -> Option<Command> {
         defmt::info!("Led off");
-        led.set_low().ok();
+        led.set_low();
         Some(ack!())
     }
 

@@ -7,7 +7,7 @@ use panic_probe as _;
 #[rtic::app(device = stm32l4xx_hal::pac, dispatchers = [TIM2])]
 mod app {
     use stm32l4xx_hal::{
-        gpio::{Alternate, Floating, Input, AF7, PA10, PA9},
+        gpio::{Alternate, PushPull, PA10, PA9},
         pac::USART1,
         prelude::*,
         serial::{self, Config, Serial},
@@ -20,10 +20,7 @@ mod app {
     /// The UART we use for ERCP.
     type Uart = Serial<
         USART1,
-        (
-            PA9<Alternate<AF7, Input<Floating>>>,
-            PA10<Alternate<AF7, Input<Floating>>>,
-        ),
+        (PA9<Alternate<PushPull, 7>>, PA10<Alternate<PushPull, 7>>),
     >;
 
     #[shared]
@@ -59,8 +56,16 @@ mod app {
             .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
 
         // Serial port configuration.
-        let tx_pin = gpioa.pa9.into_af7(&mut gpioa.moder, &mut gpioa.afrh);
-        let rx_pin = gpioa.pa10.into_af7(&mut gpioa.moder, &mut gpioa.afrh);
+        let tx_pin = gpioa.pa9.into_alternate(
+            &mut gpioa.moder,
+            &mut gpioa.otyper,
+            &mut gpioa.afrh,
+        );
+        let rx_pin = gpioa.pa10.into_alternate(
+            &mut gpioa.moder,
+            &mut gpioa.otyper,
+            &mut gpioa.afrh,
+        );
         let mut serial = Serial::usart1(
             dp.USART1,
             (tx_pin, rx_pin),
