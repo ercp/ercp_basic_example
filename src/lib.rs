@@ -15,7 +15,7 @@ pub struct DriveableResources {
 
 /// Our custom ERCP router.
 pub struct CustomRouter {
-    buffer: [u8; TX_MAX_LEN],
+    buffer: [u8; 255],
 }
 
 impl DriveableResources {
@@ -26,13 +26,11 @@ impl DriveableResources {
 
 impl Default for CustomRouter {
     fn default() -> Self {
-        Self {
-            buffer: [0; TX_MAX_LEN],
-        }
+        Self { buffer: [0; 255] }
     }
 }
 
-impl Router<RX_MAX_LEN> for CustomRouter {
+impl Router for CustomRouter {
     type Context = DriveableResources;
 
     fn route(
@@ -140,10 +138,6 @@ impl CustomRouter {
         }
     }
 }
-
-// Rx & Tx buffer sizes.
-const RX_MAX_LEN: usize = 255;
-const TX_MAX_LEN: usize = 255;
 
 // Commands.
 const LED_ON: u8 = 0x20;
