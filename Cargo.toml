@@ -18,6 +18,11 @@ branch = "develop"
 features = ["serial"]
 
 # For `cargo fix` to work.
+[lib]
+test = false
+bench = false
+
+# For `cargo fix` to work.
 [[bin]]
 name = "ercp_basic_example"
 test = false
