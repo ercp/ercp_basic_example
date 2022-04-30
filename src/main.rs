@@ -240,7 +240,7 @@ const APP: () = {
         defmt::trace!("Receiving data on UART");
         let ercp = cx.resources.ercp;
 
-        ercp.handle_data();
+        ercp.handle_data().ok();
 
         if ercp.complete_frame_received() {
             defmt::trace!("Complete frame received!");
@@ -251,7 +251,10 @@ const APP: () = {
     #[task(resources = [ercp, driveable_resources])]
     fn ercp_process(cx: ercp_process::Context) {
         defmt::debug!("Processing an ERCP frame...");
-        cx.resources.ercp.process(cx.resources.driveable_resources);
+        cx.resources
+            .ercp
+            .process(cx.resources.driveable_resources)
+            .ok();
     }
 
     extern "C" {
