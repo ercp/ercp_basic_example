@@ -7,8 +7,8 @@ use panic_probe as _;
 #[rtic::app(device = stm32l4xx_hal::pac, dispatchers = [TIM2])]
 mod app {
     use stm32l4xx_hal::{
-        gpio::{Alternate, PushPull, PA10, PA9},
-        pac::USART1,
+        gpio::{Alternate, PushPull, PA2, PA3},
+        pac::USART2,
         prelude::*,
         serial::{self, Config, Serial},
     };
@@ -19,8 +19,8 @@ mod app {
 
     /// The UART we use for ERCP.
     type Uart = Serial<
-        USART1,
-        (PA9<Alternate<PushPull, 7>>, PA10<Alternate<PushPull, 7>>),
+        USART2,
+        (PA2<Alternate<PushPull, 7>>, PA3<Alternate<PushPull, 7>>),
     >;
 
     #[shared]
@@ -56,22 +56,22 @@ mod app {
             .into_push_pull_output(&mut gpioa.moder, &mut gpioa.otyper);
 
         // Serial port configuration.
-        let tx_pin = gpioa.pa9.into_alternate(
+        let tx_pin = gpioa.pa2.into_alternate(
             &mut gpioa.moder,
             &mut gpioa.otyper,
-            &mut gpioa.afrh,
+            &mut gpioa.afrl,
         );
-        let rx_pin = gpioa.pa10.into_alternate(
+        let rx_pin = gpioa.pa3.into_alternate(
             &mut gpioa.moder,
             &mut gpioa.otyper,
-            &mut gpioa.afrh,
+            &mut gpioa.afrl,
         );
-        let mut serial = Serial::usart1(
-            dp.USART1,
+        let mut serial = Serial::usart2(
+            dp.USART2,
             (tx_pin, rx_pin),
             Config::default().baudrate(115_200.bps()),
             clocks,
-            &mut rcc.apb2,
+            &mut rcc.apb1r1,
         );
 
         // Listen RX events.
@@ -101,8 +101,8 @@ mod app {
         }
     }
 
-    #[task(binds = USART1, shared = [ercp])]
-    fn usart1(mut cx: usart1::Context) {
+    #[task(binds = USART2, shared = [ercp])]
+    fn usart2(mut cx: usart2::Context) {
         defmt::trace!("Receiving data on UART");
 
         cx.shared.ercp.lock(|ercp| {
