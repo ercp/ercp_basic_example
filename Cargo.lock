@@ -240,7 +240,7 @@ dependencies = [
 
 [[package]]
 name = "ercp_basic_example"
-version = "0.1.0"
+version = "0.1.0-dev"
 dependencies = [
  "cortex-m-rtic",
  "defmt",
