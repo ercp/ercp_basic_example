@@ -6,6 +6,8 @@ use panic_probe as _;
 
 #[rtic::app(device = stm32l4xx_hal::pac, dispatchers = [TIM2])]
 mod app {
+    use systick_monotonic::Systick;
+
     use stm32l4xx_hal::{
         gpio::{Alternate, PushPull, PA2, PA3},
         pac::USART2,
@@ -23,9 +25,26 @@ mod app {
         (PA2<Alternate<PushPull, 7>>, PA3<Alternate<PushPull, 7>>),
     >;
 
+    const MONO_FREQ: u32 = 100;
+
+    #[monotonic(binds = SysTick, default = true)]
+    type Monotonic = Systick<MONO_FREQ>;
+
+    /// A timer for ERCP timeouts based on the monotonic.
+    pub struct MonotonicTimer;
+
+    impl ercp_basic::Timer for MonotonicTimer {
+        type Instant = systick_monotonic::fugit::Instant<u64, 1, MONO_FREQ>;
+        type Duration = systick_monotonic::fugit::Duration<u64, 1, MONO_FREQ>;
+
+        fn now(&mut self) -> Self::Instant {
+            monotonics::now()
+        }
+    }
+
     #[shared]
     struct SharedResources {
-        ercp: ErcpBasic<SerialAdapter<Uart>, CustomRouter>,
+        ercp: ErcpBasic<SerialAdapter<Uart>, MonotonicTimer, CustomRouter>,
     }
 
     #[local]
@@ -39,14 +58,16 @@ mod app {
     ) -> (SharedResources, LocalResources, init::Monotonics) {
         defmt::info!("Firmware starting...");
 
-        let _cp = cx.core;
+        let cp = cx.core;
         let dp = cx.device;
+
+        let monotonic = Systick::new(cp.SYST, 80_000_000);
 
         // Clock configuration.
         let mut rcc = dp.RCC.constrain();
         let mut flash = dp.FLASH.constrain();
         let mut pwr = dp.PWR.constrain(&mut rcc.apb1r1);
-        let clocks = rcc.cfgr.freeze(&mut flash.acr, &mut pwr);
+        let clocks = rcc.cfgr.sysclk(80.MHz()).freeze(&mut flash.acr, &mut pwr);
 
         let mut gpioa = dp.GPIOA.split(&mut rcc.ahb2);
 
@@ -80,7 +101,7 @@ mod app {
         // ERCP configuration.
         let adapter = SerialAdapter::new(serial);
         let router = CustomRouter::new();
-        let mut ercp = ErcpBasic::new(adapter, router);
+        let mut ercp = ErcpBasic::new(adapter, MonotonicTimer, router);
 
         defmt::info!("Firmware initialised!");
         ercp.log("Firmware initialised!").ok();
@@ -90,7 +111,7 @@ mod app {
             LocalResources {
                 driveable_resources: DriveableResources::new(led),
             },
-            init::Monotonics(),
+            init::Monotonics(monotonic),
         )
     }
 
